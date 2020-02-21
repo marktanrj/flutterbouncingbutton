@@ -1,25 +1,37 @@
 import 'package:flutter/material.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(BouncingButton());
 
-class MyApp extends StatefulWidget {
+class BouncingButton extends StatefulWidget {
+  final Widget child;
+  final Function onPressed;
+
+  BouncingButton({this.child, this.onPressed});
+
   @override
-  _MyAppState createState() => _MyAppState();
+  _BouncingButtonState createState() => _BouncingButtonState();
 }
 
-class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
+class _BouncingButtonState extends State<BouncingButton>
+    with SingleTickerProviderStateMixin {
   double _scale;
   AnimationController _controller;
   @override
   void initState() {
     _controller = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 1),
+      duration: Duration(milliseconds: 25),
       lowerBound: 0.0,
       upperBound: 0.1,
-    )..addListener(() {
-        setState(() {});
-      });
+    );
+    _controller.addListener(() {
+      setState(() {});
+    });
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        _controller.reverse(from: 0.1);
+      }
+    });
     super.initState();
   }
 
@@ -38,23 +50,15 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
         body: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              'Tap on the Below Button',
-              style: TextStyle(color: Colors.grey[400], fontSize: 20.0),
-            ),
-            SizedBox(
-              height: 20.0,
-            ),
             Center(
               child: GestureDetector(
                 onTap: () {
-                  print('hello');
+                  widget.onPressed();
+                  _controller.forward();
                 },
-                onTapDown: _onTapDown,
-                onTapUp: _onTapUp,
                 child: Transform.scale(
                   scale: _scale,
-                  child: _animatedButtonUI,
+                  child: widget.child,
                 ),
               ),
             ),
@@ -62,42 +66,5 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
         ),
       ),
     );
-  }
-
-  Widget get _animatedButtonUI => Container(
-        height: 70,
-        width: 200,
-        decoration: BoxDecoration(
-          color: Colors.blue,
-          borderRadius: BorderRadius.circular(100.0),
-          border: Border.all(
-            color: Colors.black,
-            width: 3,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x80000000),
-              blurRadius: 30.0,
-              offset: Offset(0.0, 5.0),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Text(
-            'tap',
-            style: TextStyle(
-                fontSize: 30.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.white),
-          ),
-        ),
-      );
-
-  void _onTapDown(TapDownDetails details) {
-    _controller.forward();
-  }
-
-  void _onTapUp(TapUpDetails details) {
-    _controller.reverse();
   }
 }
